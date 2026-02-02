@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Minimal error logger used by cron/automation tasks.
+# Usage: scripts/log_err "message" (or pipe into it)
+
+ts="$(date -Iseconds)"
+msg="${1:-}"
+if [[ -z "$msg" ]]; then
+  msg="$(cat)"
+fi
+
+mkdir -p /tmp/openclaw
+printf "[%s] %s\n" "$ts" "$msg" >> /tmp/openclaw/automation-errors.log
+AiVIS session compaction guard: Context compaction failed. Main session still at 131000/131000 tokens (100%).

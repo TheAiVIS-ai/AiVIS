@@ -77,10 +77,11 @@ export async function markAuthProfileUsed(params: {
 
 export function calculateAuthProfileCooldownMs(errorCount: number): number {
   const normalized = Math.max(1, errorCount);
-  return Math.min(
-    60 * 60 * 1000, // 1 hour max
-    60 * 1000 * 5 ** Math.min(normalized - 1, 3),
-  );
+  // Custom cooldown: 5 mins → 10 mins → stay at 10 mins
+  if (normalized === 1) {
+    return 5 * 60 * 1000; // 5 minutes
+  }
+  return 10 * 60 * 1000; // 10 minutes (cap)
 }
 
 type ResolvedAuthCooldownConfig = {

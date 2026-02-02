@@ -6,10 +6,12 @@ import {
   useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
 import { randomUUID } from "node:crypto";
+import dns from "node:dns";
 import fsSync from "node:fs";
 import qrcode from "qrcode-terminal";
 import { formatCliCommand } from "../cli/command-format.js";
 import { danger, success } from "../globals.js";
+import { formatErrorMessage, formatUncaughtError } from "../infra/errors.js";
 import { getChildLogger, toPinoLikeLogger } from "../logging.js";
 import { ensureDir, resolveUserPath } from "../utils.js";
 import { VERSION } from "../version.js";
@@ -91,11 +93,76 @@ async function safeSaveCreds(
  * Create a Baileys socket backed by the multi-file auth store we keep on disk.
  * Consumers can opt into QR printing for interactive login flows.
  */
+let dnsOrderConfigured = false;
+function ensureDnsIpv4First(): void {
+  if (dnsOrderConfigured) return;
+  dnsOrderConfigured = true;
+  try {
+    dns.setDefaultResultOrder("ipv4first");
+  } catch {
+    // ignore
+  }
+}
+
+function collectErrorCandidates(err: unknown, limit = 10): unknown[] {
+  const queue: unknown[] = [err];
+  const seen = new Set<unknown>();
+  const out: unknown[] = [];
+  while (queue.length > 0 && out.length < limit) {
+    const cur = queue.shift();
+    if (cur == null || seen.has(cur)) continue;
+    seen.add(cur);
+    out.push(cur);
+    if (typeof cur === "object") {
+      const cause = (cur as { cause?: unknown }).cause;
+      if (cause && !seen.has(cause)) queue.push(cause);
+      const reason = (cur as { reason?: unknown }).reason;
+      if (reason && !seen.has(reason)) queue.push(reason);
+      const error = (cur as { error?: unknown }).error;
+      if (error && !seen.has(error)) queue.push(error);
+      const errors = (cur as { errors?: unknown }).errors;
+      if (Array.isArray(errors)) {
+        for (const e of errors) if (e && !seen.has(e)) queue.push(e);
+      }
+    }
+  }
+  return out;
+}
+
+function summarizeErrorForLogs(err: unknown): {
+  message: string;
+  candidates?: Array<{ name?: string; code?: string; message?: string }>;
+} {
+  const message = formatUncaughtError(err);
+  const candidates = collectErrorCandidates(err)
+    .map((candidate) => {
+      if (!candidate || typeof candidate !== "object") {
+        return { message: formatErrorMessage(candidate) };
+      }
+      const name = "name" in candidate ? String(candidate.name) : undefined;
+      const code = "code" in candidate ? String((candidate as { code?: unknown }).code) : undefined;
+      const msg =
+        "message" in candidate && typeof candidate.message === "string"
+          ? candidate.message
+          : formatErrorMessage(candidate);
+      return {
+        name: name && name !== "Error" ? name : undefined,
+        code: code && code !== "undefined" ? code : undefined,
+        message: msg,
+      };
+    })
+    .slice(0, 6);
+
+  return { message, candidates: candidates.length ? candidates : undefined };
+}
+
 export async function createWaSocket(
   printQr: boolean,
   verbose: boolean,
   opts: { authDir?: string; onQr?: (qr: string) => void } = {},
 ): Promise<ReturnType<typeof makeWASocket>> {
+  ensureDnsIpv4First();
+
   const baseLogger = getChildLogger(
     { module: "baileys" },
     {
@@ -120,6 +187,10 @@ export async function createWaSocket(
     browser: ["openclaw", "cli", VERSION],
     syncFullHistory: false,
     markOnlineOnConnect: false,
+
+    connectTimeoutMs: 45_000,
+    defaultQueryTimeoutMs: 45_000,
+    keepAliveIntervalMs: 20_000,
   });
 
   sock.ev.on("creds.update", () => enqueueSaveCreds(authDir, saveCreds, sessionLogger));
@@ -144,6 +215,13 @@ export async function createWaSocket(
               ),
             );
           }
+
+          if (lastDisconnect?.error) {
+            sessionLogger.error(
+              { status, ...summarizeErrorForLogs(lastDisconnect.error) },
+              "WhatsApp connection closed",
+            );
+          }
         }
         if (connection === "open" && verbose) {
           console.log(success("WhatsApp Web connected."));
@@ -156,8 +234,8 @@ export async function createWaSocket(
 
   // Handle WebSocket-level errors to prevent unhandled exceptions from crashing the process
   if (sock.ws && typeof (sock.ws as unknown as { on?: unknown }).on === "function") {
-    sock.ws.on("error", (err: Error) => {
-      sessionLogger.error({ error: String(err) }, "WebSocket error");
+    sock.ws.on("error", (err: unknown) => {
+      sessionLogger.error(summarizeErrorForLogs(err), "WebSocket error");
     });
   }
 

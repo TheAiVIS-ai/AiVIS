@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "pr-commit-workflow": {
+      "version": "1.0.0",
+      "installedAt": 1770070391533
+    },
+    "ui-test": {
+      "version": "1.2.1",
+      "installedAt": 1770070394148
+    },
+    "release-gen": {
+      "version": "1.0.1",
+      "installedAt": 1770070397145
+    }
+  }
+}
