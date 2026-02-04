@@ -12,6 +12,26 @@
     "release-gen": {
       "version": "1.0.1",
       "installedAt": 1770070397145
+    },
+    "nano-banana": {
+      "version": "1.0.1",
+      "installedAt": 1770124669592
+    },
+    "nano-banana-antigravity": {
+      "version": "1.1.0",
+      "installedAt": 1770124704077
+    },
+    "summarize-nrqj": {
+      "version": "1.0.0",
+      "installedAt": 1770125797317
+    },
+    "clawdbot-logs": {
+      "version": "1.0.0",
+      "installedAt": 1770125799000
+    },
+    "antigravity-image-gen": {
+      "version": "1.0.0",
+      "installedAt": 1770126557043
     }
   }
 }

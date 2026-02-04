@@ -71,3 +71,4 @@ apps/ios/*.mobileprovision
 
 # local tooling
 .serena/
+*.tsbuildinfo

@@ -1,6 +1,5 @@
 import type { AgentTool } from "@mariozechner/pi-agent-core";
 import type { AgentSession } from "@mariozechner/pi-coding-agent";
-import type { MemoryCitationsMode } from "../../config/types.memory.js";
 import type { ResolvedTimeFormat } from "../date-time.js";
 import type { EmbeddedContextFile } from "../pi-embedded-helpers.js";
 import type { EmbeddedSandboxInfo } from "./types.js";
@@ -8,7 +7,7 @@ import type { ReasoningLevel, ThinkLevel } from "./utils.js";
 import { buildAgentSystemPrompt, type PromptMode } from "../system-prompt.js";
 import { buildToolSummaryMap } from "../tool-summaries.js";
 
-export function buildEmbeddedSystemPrompt(params: {
+export async function buildEmbeddedSystemPrompt(params: {
   workspaceDir: string;
   defaultThinkLevel?: ThinkLevel;
   reasoningLevel?: ReasoningLevel;
@@ -47,8 +46,33 @@ export function buildEmbeddedSystemPrompt(params: {
   userTime?: string;
   userTimeFormat?: ResolvedTimeFormat;
   contextFiles?: EmbeddedContextFile[];
-  memoryCitationsMode?: MemoryCitationsMode;
-}): string {
+  sessionId?: string;
+  isNewSession?: boolean;
+}): Promise<string> {
+  // Get boot verification info if available
+  let bootVerification:
+    | {
+        bootId: string;
+        pid: number;
+        processStartTimeISO: string;
+        sessionId: string;
+        isNewSession: boolean;
+      }
+    | undefined;
+  try {
+    const { getBootRecord } = await import("../../gateway/verification/index.js");
+    const bootRecord = getBootRecord();
+    bootVerification = {
+      bootId: bootRecord.bootId,
+      pid: bootRecord.pid,
+      processStartTimeISO: bootRecord.processStartTimeISO,
+      sessionId: params.sessionId ?? "unknown",
+      isNewSession: params.isNewSession ?? false,
+    };
+  } catch {
+    // Boot verification not initialized (e.g., CLI mode), skip it
+  }
+
   return buildAgentSystemPrompt({
     workspaceDir: params.workspaceDir,
     defaultThinkLevel: params.defaultThinkLevel,
@@ -73,7 +97,7 @@ export function buildEmbeddedSystemPrompt(params: {
     userTime: params.userTime,
     userTimeFormat: params.userTimeFormat,
     contextFiles: params.contextFiles,
-    memoryCitationsMode: params.memoryCitationsMode,
+    bootVerification,
   });
 }
 

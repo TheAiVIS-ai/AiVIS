@@ -95,7 +95,9 @@ async function safeSaveCreds(
  */
 let dnsOrderConfigured = false;
 function ensureDnsIpv4First(): void {
-  if (dnsOrderConfigured) return;
+  if (dnsOrderConfigured) {
+    return;
+  }
   dnsOrderConfigured = true;
   try {
     dns.setDefaultResultOrder("ipv4first");
@@ -110,19 +112,31 @@ function collectErrorCandidates(err: unknown, limit = 10): unknown[] {
   const out: unknown[] = [];
   while (queue.length > 0 && out.length < limit) {
     const cur = queue.shift();
-    if (cur == null || seen.has(cur)) continue;
+    if (cur == null || seen.has(cur)) {
+      continue;
+    }
     seen.add(cur);
     out.push(cur);
     if (typeof cur === "object") {
       const cause = (cur as { cause?: unknown }).cause;
-      if (cause && !seen.has(cause)) queue.push(cause);
+      if (cause && !seen.has(cause)) {
+        queue.push(cause);
+      }
       const reason = (cur as { reason?: unknown }).reason;
-      if (reason && !seen.has(reason)) queue.push(reason);
+      if (reason && !seen.has(reason)) {
+        queue.push(reason);
+      }
       const error = (cur as { error?: unknown }).error;
-      if (error && !seen.has(error)) queue.push(error);
+      if (error && !seen.has(error)) {
+        queue.push(error);
+      }
       const errors = (cur as { errors?: unknown }).errors;
       if (Array.isArray(errors)) {
-        for (const e of errors) if (e && !seen.has(e)) queue.push(e);
+        for (const e of errors) {
+          if (e && !seen.has(e)) {
+            queue.push(e);
+          }
+        }
       }
     }
   }

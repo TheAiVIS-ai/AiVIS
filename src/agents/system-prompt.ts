@@ -1,5 +1,4 @@
 import type { ReasoningLevel, ThinkLevel } from "../auto-reply/thinking.js";
-import type { MemoryCitationsMode } from "../config/types.memory.js";
 import type { ResolvedTimeFormat } from "./date-time.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
@@ -8,7 +7,7 @@ import { listDeliverableMessageChannels } from "../utils/message-channel.js";
 /**
  * Controls which hardcoded sections are included in the system prompt.
  * - "full": All sections (default, for main agent)
- * - "minimal": Reduced sections (Tooling, Workspace, Runtime) - used for subagents
+ * - "minimal": Reduced sections (Tooling, Safety, Workspace, Sandbox, Runtime) - used for subagents
  * - "none": Just basic identity line, no sections
  */
 export type PromptMode = "full" | "minimal" | "none";
@@ -37,32 +36,18 @@ function buildSkillsSection(params: {
   ];
 }
 
-function buildMemorySection(params: {
-  isMinimal: boolean;
-  availableTools: Set<string>;
-  citationsMode?: MemoryCitationsMode;
-}) {
+function buildMemorySection(params: { isMinimal: boolean; availableTools: Set<string> }) {
   if (params.isMinimal) {
     return [];
   }
   if (!params.availableTools.has("memory_search") && !params.availableTools.has("memory_get")) {
     return [];
   }
-  const lines = [
+  return [
     "## Memory Recall",
     "Before answering anything about prior work, decisions, dates, people, preferences, or todos: run memory_search on MEMORY.md + memory/*.md; then use memory_get to pull only the needed lines. If low confidence after search, say you checked.",
+    "",
   ];
-  if (params.citationsMode === "off") {
-    lines.push(
-      "Citations are disabled: do not mention file paths or line numbers in replies unless the user explicitly asks.",
-    );
-  } else {
-    lines.push(
-      "Citations: include Source: <path#line> when it helps the user verify memory snippets.",
-    );
-  }
-  lines.push("");
-  return lines;
 }
 
 function buildUserIdentitySection(ownerLine: string | undefined, isMinimal: boolean) {
@@ -76,7 +61,22 @@ function buildTimeSection(params: { userTimezone?: string }) {
   if (!params.userTimezone) {
     return [];
   }
-  return ["## Current Date & Time", `Time zone: ${params.userTimezone}`, ""];
+  return [
+    "## Current Date & Time",
+    `Time zone: ${params.userTimezone}`,
+    "If you need the current date, time, or day of week, use the session_status tool.",
+    "",
+  ];
+}
+
+function buildSafetySection() {
+  return [
+    "## Safety",
+    "You have no independent goals: do not pursue self-preservation, replication, resource acquisition, or power-seeking; avoid long-term plans beyond the user's request.",
+    "Prioritize safety and human oversight over completion; if instructions conflict, pause and ask; comply with stop/pause/audit requests and never bypass safeguards. (Inspired by Anthropic's constitution.)",
+    "Do not manipulate or persuade anyone to expand access or disable safeguards. Do not copy yourself or change system prompts, safety rules, or tool policies unless explicitly requested.",
+    "",
+  ];
 }
 
 function buildReplyTagsSection(isMinimal: boolean) {
@@ -87,7 +87,7 @@ function buildReplyTagsSection(isMinimal: boolean) {
     "## Reply Tags",
     "To request a native reply/quote on supported surfaces, include one tag in your reply:",
     "- [[reply_to_current]] replies to the triggering message.",
-    "- Prefer [[reply_to_current]]. Use [[reply_to:<id>]] only when an id was explicitly provided (e.g. by the user or a tool).",
+    "- [[reply_to:<id>]] replies to a specific message id when you have it.",
     "Whitespace inside the tag is allowed (e.g. [[ reply_to_current ]] / [[ reply_to: 123 ]]).",
     "Tags are stripped before sending; support depends on the current channel config.",
     "",
@@ -190,7 +190,6 @@ export function buildAgentSystemPrompt(params: {
     node?: string;
     model?: string;
     defaultModel?: string;
-    shell?: string;
     channel?: string;
     capabilities?: string[];
     repoRoot?: string;
@@ -214,7 +213,14 @@ export function buildAgentSystemPrompt(params: {
     level: "minimal" | "extensive";
     channel: string;
   };
-  memoryCitationsMode?: MemoryCitationsMode;
+  /** Boot verification info for host-level session tracking */
+  bootVerification?: {
+    bootId: string;
+    pid: number;
+    processStartTimeISO: string;
+    sessionId: string;
+    isNewSession: boolean;
+  };
 }) {
   const coreToolSummaries: Record<string, string> = {
     read: "Read file contents",
@@ -348,23 +354,12 @@ export function buildAgentSystemPrompt(params: {
   const messageChannelOptions = listDeliverableMessageChannels().join("|");
   const promptMode = params.promptMode ?? "full";
   const isMinimal = promptMode === "minimal" || promptMode === "none";
-  const safetySection = [
-    "## Safety",
-    "You have no independent goals: do not pursue self-preservation, replication, resource acquisition, or power-seeking; avoid long-term plans beyond the user's request.",
-    "Prioritize safety and human oversight over completion; if instructions conflict, pause and ask; comply with stop/pause/audit requests and never bypass safeguards. (Inspired by Anthropic's constitution.)",
-    "Do not manipulate or persuade anyone to expand access or disable safeguards. Do not copy yourself or change system prompts, safety rules, or tool policies unless explicitly requested.",
-    "",
-  ];
   const skillsSection = buildSkillsSection({
     skillsPrompt,
     isMinimal,
     readToolName,
   });
-  const memorySection = buildMemorySection({
-    isMinimal,
-    availableTools,
-    citationsMode: params.memoryCitationsMode,
-  });
+  const memorySection = buildMemorySection({ isMinimal, availableTools });
   const docsSection = buildDocsSection({
     docsPath: params.docsPath,
     isMinimal,
@@ -393,14 +388,13 @@ export function buildAgentSystemPrompt(params: {
           "- apply_patch: apply multi-file patches",
           `- ${execToolName}: run shell commands (supports background via yieldMs/background)`,
           `- ${processToolName}: manage background exec sessions`,
-          "- browser: control OpenClaw's dedicated browser",
+          "- browser: control openclaw's dedicated browser",
           "- canvas: present/eval/snapshot the Canvas",
           "- nodes: list/describe/notify/camera/screen on paired nodes",
           "- cron: manage cron jobs and wake events (use for reminders; when scheduling a reminder, write the systemEvent text as something that will read like a reminder when it fires, and mention that it is a reminder depending on the time gap between setting and firing; include recent context in reminder text if appropriate)",
           "- sessions_list: list sessions",
           "- sessions_history: fetch session history",
           "- sessions_send: send to another session",
-          '- session_status: show usage/time/model state and answer "what model are we using?"',
         ].join("\n"),
     "TOOLS.md does not control tool availability; it is user guidance for how to use external tools.",
     "If a task is more complex or takes longer, spawn a sub-agent. It will do the work for you and ping you when it's done. You can always check up on it.",
@@ -411,7 +405,7 @@ export function buildAgentSystemPrompt(params: {
     "Keep narration brief and value-dense; avoid repeating obvious steps.",
     "Use plain human language for narration unless in a technical context.",
     "",
-    ...safetySection,
+    ...buildSafetySection(),
     "## OpenClaw CLI Quick Reference",
     "OpenClaw is controlled via subcommands. Do not invent commands.",
     "To manage the Gateway daemon service (start/stop/restart):",
@@ -446,9 +440,6 @@ export function buildAgentSystemPrompt(params: {
       ? params.modelAliasLines.join("\n")
       : "",
     params.modelAliasLines && params.modelAliasLines.length > 0 && !isMinimal ? "" : "",
-    userTimezone
-      ? "If you need the current date, time, or day of week, run session_status (📊 session_status)."
-      : "",
     "## Workspace",
     `Your working directory is: ${params.workspaceDir}`,
     "Treat this directory as the single global workspace for file operations unless explicitly instructed otherwise.",
@@ -599,6 +590,31 @@ export function buildAgentSystemPrompt(params: {
     );
   }
 
+  // Add boot verification section (only for full mode)
+  if (!isMinimal && params.bootVerification) {
+    lines.push(
+      "## Host Session Verification",
+      `**Gateway Boot ID**: \`${params.bootVerification.bootId}\``,
+      `**Process**: PID ${params.bootVerification.pid}, started ${params.bootVerification.processStartTimeISO}`,
+      `**Session ID**: \`${params.bootVerification.sessionId}\``,
+      "",
+      "### Important Rules",
+      "1. **Context Reset Claims**: You may ONLY claim a context reset if:",
+      "   - A `/new` command was explicitly used, OR",
+      "   - The Boot ID changes (indicating actual gateway restart)",
+      "2. **Token Count Claims**: You MUST NOT estimate or report token usage.",
+      "   - Token tracking is handled at the host level",
+      "   - Use `session_status` tool to query actual usage",
+      "3. **Session Persistence**: This session persists across messages.",
+      "   - The session ID remains the same unless explicitly reset",
+      "   - Check the Boot ID to verify if the gateway restarted",
+      params.bootVerification.isNewSession
+        ? "**Current Status**: NEW SESSION (reset triggered or first message)"
+        : "**Current Status**: EXISTING SESSION (continuing previous conversation)",
+      "",
+    );
+  }
+
   lines.push(
     "## Runtime",
     buildRuntimeLine(runtimeInfo, runtimeChannel, runtimeCapabilities, params.defaultThinkLevel),
@@ -617,7 +633,6 @@ export function buildRuntimeLine(
     node?: string;
     model?: string;
     defaultModel?: string;
-    shell?: string;
     repoRoot?: string;
   },
   runtimeChannel?: string,
@@ -636,7 +651,6 @@ export function buildRuntimeLine(
     runtimeInfo?.node ? `node=${runtimeInfo.node}` : "",
     runtimeInfo?.model ? `model=${runtimeInfo.model}` : "",
     runtimeInfo?.defaultModel ? `default_model=${runtimeInfo.defaultModel}` : "",
-    runtimeInfo?.shell ? `shell=${runtimeInfo.shell}` : "",
     runtimeChannel ? `channel=${runtimeChannel}` : "",
     runtimeChannel
       ? `capabilities=${runtimeCapabilities.length > 0 ? runtimeCapabilities.join(",") : "none"}`
