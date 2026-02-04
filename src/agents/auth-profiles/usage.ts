@@ -265,7 +265,7 @@ export async function markAuthProfileFailure(params: {
 
 /**
  * Mark a profile as failed/rate-limited. Applies exponential backoff cooldown.
- * Cooldown times: 1min, 5min, 25min, max 1 hour.
+ * Cooldown times: 5min (first failure), 10min (subsequent failures, capped).
  * Uses store lock to avoid overwriting concurrent usage updates.
  */
 export async function markAuthProfileCooldown(params: {

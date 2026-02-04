@@ -86,10 +86,8 @@ validation failures) are treated as failover‑worthy and use the same cooldowns
 
 Cooldowns use exponential backoff:
 
-- 1 minute
-- 5 minutes
-- 25 minutes
-- 1 hour (cap)
+- 5 minutes (first failure)
+- 10 minutes (subsequent failures, capped)
 
 State is stored in `auth-profiles.json` under `usageStats`:
 

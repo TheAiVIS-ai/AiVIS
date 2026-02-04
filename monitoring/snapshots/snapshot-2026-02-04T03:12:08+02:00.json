@@ -4,130 +4,128 @@
   "gitCommit": "4391d9c5e",
   "workspaceSizeKb": 2397516,
   "health": {
-  "ok": true,
-  "ts": 1770167533273,
-  "durationMs": 8,
-  "channels": {
-    "whatsapp": {
-      "configured": true,
-      "linked": true,
-      "authAgeMs": 10301.1630859375,
-      "self": {
-        "e164": "+27822685157",
-        "jid": "27822685157:1@s.whatsapp.net"
-      },
-      "running": false,
-      "connected": false,
-      "lastConnectedAt": null,
-      "lastDisconnect": null,
-      "lastMessageAt": null,
-      "lastEventAt": null,
-      "lastError": null,
-      "accountId": "default",
-      "accounts": {
-        "default": {
-          "configured": true,
-          "linked": true,
-          "authAgeMs": 10301.1630859375,
-          "self": {
-            "e164": "+27822685157",
-            "jid": "27822685157:1@s.whatsapp.net"
-          },
-          "running": false,
-          "connected": false,
-          "lastConnectedAt": null,
-          "lastDisconnect": null,
-          "lastMessageAt": null,
-          "lastEventAt": null,
-          "lastError": null,
-          "accountId": "default"
+    "ok": true,
+    "ts": 1770167533273,
+    "durationMs": 8,
+    "channels": {
+      "whatsapp": {
+        "configured": true,
+        "linked": true,
+        "authAgeMs": 10301.1630859375,
+        "self": {
+          "e164": "+27822685157",
+          "jid": "27822685157:1@s.whatsapp.net"
+        },
+        "running": false,
+        "connected": false,
+        "lastConnectedAt": null,
+        "lastDisconnect": null,
+        "lastMessageAt": null,
+        "lastEventAt": null,
+        "lastError": null,
+        "accountId": "default",
+        "accounts": {
+          "default": {
+            "configured": true,
+            "linked": true,
+            "authAgeMs": 10301.1630859375,
+            "self": {
+              "e164": "+27822685157",
+              "jid": "27822685157:1@s.whatsapp.net"
+            },
+            "running": false,
+            "connected": false,
+            "lastConnectedAt": null,
+            "lastDisconnect": null,
+            "lastMessageAt": null,
+            "lastEventAt": null,
+            "lastError": null,
+            "accountId": "default"
+          }
         }
       }
-    }
-  },
-  "channelOrder": [
-    "whatsapp"
-  ],
-  "channelLabels": {
-    "whatsapp": "WhatsApp"
-  },
-  "heartbeatSeconds": 1800,
-  "defaultAgentId": "main",
-  "agents": [
-    {
-      "agentId": "main",
-      "isDefault": true,
-      "heartbeat": {
-        "enabled": true,
-        "every": "30m",
-        "everyMs": 1800000,
-        "prompt": "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
-        "target": "last",
-        "ackMaxChars": 300
-      },
-      "sessions": {
-        "path": "/home/grafe/.openclaw/agents/main/sessions/sessions.json",
-        "count": 6,
-        "recent": [
-          {
-            "key": "agent:main:main",
-            "updatedAt": 1770167524206,
-            "age": 9059
-          },
-          {
-            "key": "agent:main:cron:23c30d20-b072-439e-9dce-1a8e0e033708",
-            "updatedAt": 1770167520907,
-            "age": 12358
-          },
-          {
-            "key": "agent:main:cron:141f2ac5-1738-4b20-b87d-af45e86e7759",
-            "updatedAt": 1770167449277,
-            "age": 83988
-          },
-          {
-            "key": "agent:main:subagent:a5f70725-ada1-487f-a0c2-daf1a88892ca",
-            "updatedAt": 1770166877901,
-            "age": 655364
-          },
-          {
-            "key": "agent:main:subagent:c6a5d718-bae5-4926-9b96-5b6b60f9d93c",
-            "updatedAt": 1770166782076,
-            "age": 751189
-          }
-        ]
+    },
+    "channelOrder": ["whatsapp"],
+    "channelLabels": {
+      "whatsapp": "WhatsApp"
+    },
+    "heartbeatSeconds": 1800,
+    "defaultAgentId": "main",
+    "agents": [
+      {
+        "agentId": "main",
+        "isDefault": true,
+        "heartbeat": {
+          "enabled": true,
+          "every": "30m",
+          "everyMs": 1800000,
+          "prompt": "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.",
+          "target": "last",
+          "ackMaxChars": 300
+        },
+        "sessions": {
+          "path": "/home/grafe/.openclaw/agents/main/sessions/sessions.json",
+          "count": 6,
+          "recent": [
+            {
+              "key": "agent:main:main",
+              "updatedAt": 1770167524206,
+              "age": 9059
+            },
+            {
+              "key": "agent:main:cron:23c30d20-b072-439e-9dce-1a8e0e033708",
+              "updatedAt": 1770167520907,
+              "age": 12358
+            },
+            {
+              "key": "agent:main:cron:141f2ac5-1738-4b20-b87d-af45e86e7759",
+              "updatedAt": 1770167449277,
+              "age": 83988
+            },
+            {
+              "key": "agent:main:subagent:a5f70725-ada1-487f-a0c2-daf1a88892ca",
+              "updatedAt": 1770166877901,
+              "age": 655364
+            },
+            {
+              "key": "agent:main:subagent:c6a5d718-bae5-4926-9b96-5b6b60f9d93c",
+              "updatedAt": 1770166782076,
+              "age": 751189
+            }
+          ]
+        }
       }
+    ],
+    "sessions": {
+      "path": "/home/grafe/.openclaw/agents/main/sessions/sessions.json",
+      "count": 6,
+      "recent": [
+        {
+          "key": "agent:main:main",
+          "updatedAt": 1770167524206,
+          "age": 9059
+        },
+        {
+          "key": "agent:main:cron:23c30d20-b072-439e-9dce-1a8e0e033708",
+          "updatedAt": 1770167520907,
+          "age": 12358
+        },
+        {
+          "key": "agent:main:cron:141f2ac5-1738-4b20-b87d-af45e86e7759",
+          "updatedAt": 1770167449277,
+          "age": 83988
+        },
+        {
+          "key": "agent:main:subagent:a5f70725-ada1-487f-a0c2-daf1a88892ca",
+          "updatedAt": 1770166877901,
+          "age": 655364
+        },
+        {
+          "key": "agent:main:subagent:c6a5d718-bae5-4926-9b96-5b6b60f9d93c",
+          "updatedAt": 1770166782076,
+          "age": 751189
+        }
+      ]
     }
-  ],
-  "sessions": {
-    "path": "/home/grafe/.openclaw/agents/main/sessions/sessions.json",
-    "count": 6,
-    "recent": [
-      {
-        "key": "agent:main:main",
-        "updatedAt": 1770167524206,
-        "age": 9059
-      },
-      {
-        "key": "agent:main:cron:23c30d20-b072-439e-9dce-1a8e0e033708",
-        "updatedAt": 1770167520907,
-        "age": 12358
-      },
-      {
-        "key": "agent:main:cron:141f2ac5-1738-4b20-b87d-af45e86e7759",
-        "updatedAt": 1770167449277,
-        "age": 83988
-      },
-      {
-        "key": "agent:main:subagent:a5f70725-ada1-487f-a0c2-daf1a88892ca",
-        "updatedAt": 1770166877901,
-        "age": 655364
-      },
-      {
-        "key": "agent:main:subagent:c6a5d718-bae5-4926-9b96-5b6b60f9d93c",
-        "updatedAt": 1770166782076,
-        "age": 751189
-      }
-    ]
   }
-}
 }

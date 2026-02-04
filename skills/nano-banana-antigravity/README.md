@@ -34,6 +34,7 @@
 ```
 
 **What it does:**
+
 - Generates 4K image via Nano Banana Pro
 - Auto-converts PNG → progressive JPEG
 - Optimizes quality to stay under 6.28MB
@@ -69,13 +70,13 @@ uv run skills/nano-banana-antigravity/scripts/generate_image.py \
 
 ## Options
 
-| Option | Short | Description | Default |
-|--------|-------|-------------|---------|
-| `--prompt` | `-p` | Image description (required) | - |
-| `--filename` | `-f` | Output filename (required) | - |
-| `--input-image` | `-i` | Input image for editing (repeatable) | - |
-| `--aspect-ratio` | `-a` | Aspect ratio | 1:1 |
-| `--resolution` | `-r` | Resolution (1K, 2K, 4K) | 1K |
+| Option           | Short | Description                          | Default |
+| ---------------- | ----- | ------------------------------------ | ------- |
+| `--prompt`       | `-p`  | Image description (required)         | -       |
+| `--filename`     | `-f`  | Output filename (required)           | -       |
+| `--input-image`  | `-i`  | Input image for editing (repeatable) | -       |
+| `--aspect-ratio` | `-a`  | Aspect ratio                         | 1:1     |
+| `--resolution`   | `-r`  | Resolution (1K, 2K, 4K)              | 1K      |
 
 ## Supported Aspect Ratios
 

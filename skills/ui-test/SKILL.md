@@ -1,14 +1,14 @@
 ---
 name: ui-test
 description: Plain English E2E UI testing. Describe tests in natural language, agent executes via browser tool, then exports real Playwright test scripts for CI/CD. Use when asked to create UI tests, test a website, or generate Playwright scripts.
-metadata: {"clawdbot":{"emoji":"🧪"}}
+metadata: { "clawdbot": { "emoji": "🧪" } }
 ---
 
 # UI Test — Plain English E2E Testing (🧪)
 
 Describe your UI tests in plain English. The agent figures out how to find buttons, navigate the app flow, and execute each step — no selectors or code needed. It screenshots every major step, stitches them into a walkthrough video, and DMs you the result with a pass/fail report.
 
-*Made in 🤠 Texas ❤️ [PlebLab](https://pleblab.dev)*
+_Made in 🤠 Texas ❤️ [PlebLab](https://pleblab.dev)_
 
 ![UI Test — Describe it. I'll test it.](https://files.catbox.moe/3yezuk.png)
 
@@ -46,39 +46,40 @@ When exporting to Playwright:
 
 The agent should interpret plain English steps like:
 
-| User says | Browser action | Playwright equivalent |
-|-----------|---------------|----------------------|
-| "click the Sign In button" | `act: click ref="Sign In button"` | `page.getByRole('button', {name: 'Sign In'}).click()` |
-| "type hello@test.com in the email field" | `act: type ref="email" text="hello@test.com"` | `page.getByLabel('Email').fill('hello@test.com')` |
-| "verify the dashboard shows Welcome" | `snapshot` + check text | `expect(page.getByText('Welcome')).toBeVisible()` |
-| "wait for the page to load" | `act: wait` | `page.waitForLoadState('networkidle')` |
-| "click the hamburger menu" | `act: click` (find menu icon) | `page.getByRole('button', {name: 'menu'}).click()` |
-| "scroll down" | `act: evaluate fn="window.scrollBy(0,500)"` | `page.evaluate(() => window.scrollBy(0, 500))` |
-| "check the Remember Me checkbox" | `act: click ref="Remember Me"` | `page.getByLabel('Remember Me').check()` |
-| "select 'USD' from the currency dropdown" | `act: select values=["USD"]` | `page.getByLabel('Currency').selectOption('USD')` |
-| "take a screenshot" | `browser action=screenshot` | `page.screenshot({path: 'step-N.png'})` |
-| "verify URL contains /dashboard" | check current URL | `expect(page).toHaveURL(/dashboard/)` |
+| User says                                 | Browser action                                | Playwright equivalent                                 |
+| ----------------------------------------- | --------------------------------------------- | ----------------------------------------------------- |
+| "click the Sign In button"                | `act: click ref="Sign In button"`             | `page.getByRole('button', {name: 'Sign In'}).click()` |
+| "type hello@test.com in the email field"  | `act: type ref="email" text="hello@test.com"` | `page.getByLabel('Email').fill('hello@test.com')`     |
+| "verify the dashboard shows Welcome"      | `snapshot` + check text                       | `expect(page.getByText('Welcome')).toBeVisible()`     |
+| "wait for the page to load"               | `act: wait`                                   | `page.waitForLoadState('networkidle')`                |
+| "click the hamburger menu"                | `act: click` (find menu icon)                 | `page.getByRole('button', {name: 'menu'}).click()`    |
+| "scroll down"                             | `act: evaluate fn="window.scrollBy(0,500)"`   | `page.evaluate(() => window.scrollBy(0, 500))`        |
+| "check the Remember Me checkbox"          | `act: click ref="Remember Me"`                | `page.getByLabel('Remember Me').check()`              |
+| "select 'USD' from the currency dropdown" | `act: select values=["USD"]`                  | `page.getByLabel('Currency').selectOption('USD')`     |
+| "take a screenshot"                       | `browser action=screenshot`                   | `page.screenshot({path: 'step-N.png'})`               |
+| "verify URL contains /dashboard"          | check current URL                             | `expect(page).toHaveURL(/dashboard/)`                 |
 
 ## Commands
 
 Run via: `node ~/workspace/skills/ui-test/scripts/ui-test.js <command>`
 
-| Command | Description |
-|---------|-------------|
-| `create <name> [url]` | Create a new test |
-| `add-step <name> <step>` | Add a plain English step |
-| `set-steps <name> <json>` | Replace all steps |
-| `set-url <name> <url>` | Set the test URL |
-| `get <name>` | Show test definition |
-| `list` | List all tests |
-| `remove <name>` | Delete a test |
-| `save-run <name> ...` | Save execution results |
-| `runs [name]` | Show run history |
+| Command                   | Description                 |
+| ------------------------- | --------------------------- |
+| `create <name> [url]`     | Create a new test           |
+| `add-step <name> <step>`  | Add a plain English step    |
+| `set-steps <name> <json>` | Replace all steps           |
+| `set-url <name> <url>`    | Set the test URL            |
+| `get <name>`              | Show test definition        |
+| `list`                    | List all tests              |
+| `remove <name>`           | Delete a test               |
+| `save-run <name> ...`     | Save execution results      |
+| `runs [name]`             | Show run history            |
 | `export <name> [outfile]` | Export as Playwright script |
 
 ## Export Format
 
 Generated Playwright files include:
+
 - Proper TypeScript imports
 - `test.describe` block with test name
 - `test.beforeEach` with navigation to base URL
@@ -97,6 +98,7 @@ During test execution, the agent should:
 Screenshots are saved to: `~/.ui-tests/runs/<slug>-<timestamp>/`
 
 After the run completes, generate a walkthrough video:
+
 ```bash
 ffmpeg -framerate 1 -pattern_type glob -i '~/.ui-tests/runs/<folder>/step-*.jpg' \
   -vf "scale=1280:-2" -c:v libx264 -pix_fmt yuv420p -y output.mp4

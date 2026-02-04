@@ -1,9 +1,11 @@
 # PR Workflow
 
 ## Preconditions
+
 - If the repo has `AGENTS.md` or `docs/agents/PROCESS.md`, read it for repo-specific rules.
 
 ## Mandatory Human Intent Capture
+
 - Prompt the user for a human-written intent section.
 - Do not draft, rewrite, summarize, or paraphrase the intent.
 - Paste the intent verbatim at the very top of the PR body under the heading `Human written summary:`.
@@ -13,6 +15,7 @@
 - If intent is missing, stop and request it.
 
 ## Steps
+
 - Ensure branch is clean and only includes the intended commits.
 - Check for other open PRs that may conflict.
 - Ask the user whether to request reviewers; only request collaborators.
@@ -23,6 +26,7 @@
 - Default PRs to draft until tests + review pass; ask user before marking ready.
 
 ## Prompt History Requirements
+
 - Include ISO-8601 timestamps with timezone.
 - Prefer agent history search tools (`cm`/`cass`, Codex logs, etc.); if unavailable, fall back to manual logs and note the fallback.
 - Include the full prompt history verbatim; do not omit prompts.
@@ -39,6 +43,7 @@
 - For very long prompts (>200 chars), consider using heading+codeblock format instead of table rows to avoid rendering issues.
 
 ## Review Comment Checks
+
 - Always check both:
   - `gh pr view <id> --comments`
   - `gh api /repos/<org>/<repo>/pulls/<id>/comments --paginate`

@@ -2,7 +2,7 @@
 name: nano-banana-antigravity
 description: Generate or edit images via Nano Banana Pro using Antigravity OAuth (no API key needed!)
 homepage: https://antigravity.google
-metadata: {"openclaw":{"emoji":"🍌","requires":{"bins":["uv"]}}}
+metadata: { "openclaw": { "emoji": "🍌", "requires": { "bins": ["uv"] } } }
 ---
 
 # Nano Banana Antigravity (Gemini 3 Pro Image via OAuth)
@@ -14,6 +14,7 @@ Generate images using Nano Banana Pro (Gemini 3 Pro Image) via your existing Goo
 ## Generate Image
 
 **For WhatsApp HD (recommended):**
+
 ```bash
 {baseDir}/scripts/generate_whatsapp_hd.sh \
   --prompt "your image description" \
@@ -23,6 +24,7 @@ Generate images using Nano Banana Pro (Gemini 3 Pro Image) via your existing Goo
 ```
 
 **Standard PNG output:**
+
 ```bash
 uv run {baseDir}/scripts/generate_image.py --prompt "your image description" --filename "output.png"
 ```
@@ -38,6 +40,7 @@ uv run {baseDir}/scripts/generate_image.py --prompt "your image description" --f
 ```
 
 **What `generate_whatsapp_hd.sh` does:**
+
 - ✅ Auto-converts PNG → progressive JPEG
 - ✅ Optimizes quality (85-92%) to stay under 6.28MB
 - ✅ WhatsApp HD ready (no compression!)
@@ -78,6 +81,7 @@ openclaw models auth login --provider google-antigravity
 ```
 
 The script looks for credentials in:
+
 - `~/.openclaw/credentials/google-antigravity.json`
 - `~/.config/openclaw/credentials/google-antigravity.json`
 - `~/.config/opencode/antigravity-accounts.json`
@@ -85,16 +89,18 @@ The script looks for credentials in:
 ## WhatsApp HD Upload Limits
 
 **For best WhatsApp HD quality:**
+
 - Use `generate_whatsapp_hd.sh` instead of `generate_image.py`
 - Output filename must end in `.jpg` or `.jpeg`
 - Images ≤6.28MB will upload without compression
 - Images >6.28MB may be compressed by WhatsApp
 
 **Size guidelines:**
+
 - ≤6.28MB → ✅ HD (no compression)
 - 6.29-6.5MB → Slight compression (~5.7MB)
 - 6.5-7.6MB → Moderate compression (~6.2MB)
-- >9MB → ⚠️ Heavy compression
+- > 9MB → ⚠️ Heavy compression
 
 ## Notes
 

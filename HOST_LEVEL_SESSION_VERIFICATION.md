@@ -12,7 +12,7 @@
 OpenClaw uses a **persistent session system** with the following components:
 
 1. **Gateway Process** (PID-based, long-running daemon)
-   - Runs continuously as `openclaw-gateway` 
+   - Runs continuously as `openclaw-gateway`
    - Manages all agent sessions in-memory and on-disk
    - Does NOT reset sessions on restart
 
@@ -53,6 +53,7 @@ OpenClaw operates in **STICKY SESSION MODE** by default:
 ### Evidence
 
 From logs (`/tmp/openclaw/openclaw-2026-02-03.log`):
+
 ```json
 {
   "sessionId": "a63854c8-63f4-4c73-95e0-8b930b4ca8ff",
@@ -66,6 +67,7 @@ This session ID appeared **901 times** in a single day's logs, proving continuou
 ### Session Freshness Policy
 
 Sessions are evaluated for "freshness" based on:
+
 - `updatedAt` timestamp
 - Configurable reset policies (per-channel, per-type)
 - Default: sessions persist indefinitely
@@ -79,6 +81,7 @@ Sessions are evaluated for "freshness" based on:
 **Purpose:** Generate a unique UUID on gateway startup that proves actual process restart.
 
 **Key Functions:**
+
 - `initializeBootId()` - Called once during gateway startup
 - `getCurrentBootId()` - Returns current boot ID
 - `getBootRecord()` - Returns full boot record with PID, timestamp
@@ -86,18 +89,20 @@ Sessions are evaluated for "freshness" based on:
 - `hasRestartedSince(timestamp)` - Check if gateway restarted since timestamp
 
 **Boot Record Structure:**
+
 ```typescript
 {
-  bootId: string;              // UUID generated at startup
-  processStartTime: number;     // Timestamp in milliseconds
-  processStartTimeISO: string;  // ISO 8601 timestamp
-  pid: number;                  // Process ID
-  hostname: string;             // Machine hostname
-  nodeVersion: string;          // Node.js version
+  bootId: string; // UUID generated at startup
+  processStartTime: number; // Timestamp in milliseconds
+  processStartTimeISO: string; // ISO 8601 timestamp
+  pid: number; // Process ID
+  hostname: string; // Machine hostname
+  nodeVersion: string; // Node.js version
 }
 ```
 
 **Logging:**
+
 - Console: `[BOOT-ID] Gateway started with boot ID: <uuid>`
 - File: `~/.openclaw/gateway-boot.log` (append-only audit trail)
 
@@ -106,6 +111,7 @@ Sessions are evaluated for "freshness" based on:
 **Purpose:** Prevent agents from falsely claiming context resets without host-level evidence.
 
 **Key Functions:**
+
 - `verifySessionReset(ctx)` - Verify if reset claim is legitimate
 - `generateSystemVerificationMessage(ctx)` - Generate verification prompt for agent
 - `detectFalseResetClaim(responseText, ctx)` - Detect false reset claims in agent responses
@@ -114,15 +120,18 @@ Sessions are evaluated for "freshness" based on:
 **Verification Logic:**
 
 Reset is **VERIFIED** if:
+
 1. Reset trigger was explicitly invoked (`/new` command), OR
-2. Session is genuinely new (created after gateway boot), OR  
+2. Session is genuinely new (created after gateway boot), OR
 3. Gateway restarted since session creation (boot ID changed)
 
 Reset is **BLOCKED** if:
+
 - Agent claims reset but no host-level evidence exists
 - Boot ID unchanged AND no explicit `/new` command
 
 **Detected Claim Patterns:**
+
 ```typescript
 /context\s+(has\s+been\s+)?reset/i
 /new\s+session\s+(started|created)/i
@@ -139,6 +148,7 @@ Reset is **BLOCKED** if:
 **Added Section:** "Host Session Verification"
 
 **Injected Content:**
+
 ```markdown
 ## Host Session Verification
 
@@ -168,6 +178,7 @@ Reset is **BLOCKED** if:
 **Modified:** `startGatewayServer()` function
 
 **Changes:**
+
 ```typescript
 import { initializeBootId } from "./verification/index.js";
 
@@ -183,11 +194,13 @@ log.info(`gateway boot verification initialized: ${bootRecord.bootId}`);
 **Modified:** `buildEmbeddedSystemPrompt()` function (now async)
 
 **Changes:**
+
 - Attempts to import boot record from verification system
 - Passes boot verification data to `buildAgentSystemPrompt()`
 - Gracefully handles CLI mode (no gateway) by skipping verification
 
 **Added Parameters:**
+
 ```typescript
 sessionId?: string;
 isNewSession?: boolean;
@@ -208,6 +221,7 @@ isNewSession?: boolean;
 #### Method 1: Check Boot ID in Agent Response
 
 When agent starts a conversation, the system prompt includes:
+
 ```
 Gateway Boot ID: `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
 Process: PID 3217, started 2026-02-03T00:58:20.000Z
@@ -223,6 +237,7 @@ cat ~/.openclaw/gateway-boot.log
 ```
 
 Output:
+
 ```
 2026-02-03T00:58:20.000Z | BOOT_ID=a1b2c3d4-... | PID=3217 | NODE=v22.22.0
 2026-02-03T02:15:30.000Z | BOOT_ID=e5f6g7h8-... | PID=4521 | NODE=v22.22.0
@@ -262,22 +277,26 @@ This is the ONLY guaranteed way to force a new session. Agent CANNOT fake this.
 ### For Users: Verifying Session State
 
 **Check current boot ID:**
+
 ```bash
 tail -1 ~/.openclaw/gateway-boot.log
 ```
 
 **Check when gateway started:**
+
 ```bash
 pgrep -fa openclaw-gateway
 ps -p <PID> -o lstart=
 ```
 
 **Force a verified new session:**
+
 ```
 /new
 ```
 
 **Challenge the agent:**
+
 > "What is your current Boot ID?"
 
 The agent MUST provide the exact UUID from the system prompt. If it guesses or estimates, it's violating the verification rules.
@@ -285,17 +304,20 @@ The agent MUST provide the exact UUID from the system prompt. If it guesses or e
 ### For Developers: Adding Verification to New Features
 
 **Import the verification system:**
+
 ```typescript
 import { getCurrentBootId, verifySessionReset } from "../gateway/verification/index.js";
 ```
 
 **Check if gateway restarted:**
+
 ```typescript
 const bootRecord = getBootRecord();
 const restarted = hasRestartedSince(lastCheckTimestamp);
 ```
 
 **Verify a reset claim:**
+
 ```typescript
 const verification = verifySessionReset({
   sessionId: "...",
@@ -355,6 +377,7 @@ mv sessions.json.tmp sessions.json
 ## EXAMPLE LOG OUTPUT (Verified Fresh Session)
 
 ### Gateway Startup:
+
 ```
 [BOOT-ID] Gateway started with boot ID: f4e3d2c1-a1b2-c3d4-e5f6-123456789abc
 [BOOT-ID] Process: PID=5421, started=2026-02-03T03:30:00.000Z
@@ -362,6 +385,7 @@ gateway boot verification initialized: f4e3d2c1-a1b2-c3d4-e5f6-123456789abc
 ```
 
 ### Agent System Prompt (Injected):
+
 ```
 ## Host Session Verification
 
@@ -373,6 +397,7 @@ gateway boot verification initialized: f4e3d2c1-a1b2-c3d4-e5f6-123456789abc
 ```
 
 ### Boot Log Entry:
+
 ```
 2026-02-03T03:30:00.000Z | BOOT_ID=f4e3d2c1-a1b2-c3d4-e5f6-123456789abc | PID=5421 | NODE=v22.22.0
 ```
@@ -382,12 +407,14 @@ gateway boot verification initialized: f4e3d2c1-a1b2-c3d4-e5f6-123456789abc
 ## FILES MODIFIED
 
 ### New Files Created:
+
 1. `.openclaw/workspace/src/gateway/verification/boot-id.ts` (120 lines)
 2. `.openclaw/workspace/src/gateway/verification/session-verification.ts` (140 lines)
 3. `.openclaw/workspace/src/gateway/verification/index.ts` (20 lines)
 4. `.openclaw/workspace/HOST_LEVEL_SESSION_VERIFICATION.md` (this file)
 
 ### Existing Files Modified:
+
 1. `.openclaw/workspace/src/gateway/server.impl.ts`
    - Added import: `initializeBootId`
    - Added boot ID initialization after config loading
@@ -409,6 +436,7 @@ gateway boot verification initialized: f4e3d2c1-a1b2-c3d4-e5f6-123456789abc
    - 1 line changed
 
 ### Total Changes:
+
 - **New code:** ~280 lines
 - **Modified code:** ~60 lines
 - **Files created:** 4
@@ -424,14 +452,14 @@ gateway boot verification initialized: f4e3d2c1-a1b2-c3d4-e5f6-123456789abc
 ✅ Proves when sessions are created (Session ID recorded)  
 ✅ Prevents agents from claiming false resets  
 ✅ Provides audit trail in boot log  
-✅ Injects verification into agent context  
+✅ Injects verification into agent context
 
 ### What This System Does NOT Do
 
 ❌ Prevent LLM from hallucinating (but makes it detectable)  
 ❌ Force gateway restart (user must do this)  
 ❌ Automatically reset sessions (user must use `/new`)  
-❌ Track token usage (handled separately by `session_status` tool)  
+❌ Track token usage (handled separately by `session_status` tool)
 
 ### Edge Cases
 
@@ -459,7 +487,7 @@ All requirements from the original task have been met:
 ✅ **Hard guardrail designed:** (Detection implemented, blocking is optional enhancement)  
 ✅ **Real reset option provided:** `/new` command (non-destructive)  
 ✅ **Verified-session mechanism:** Boot ID in system prompt + audit log  
-✅ **Documentation complete:** This file with verification methods and usage  
+✅ **Documentation complete:** This file with verification methods and usage
 
 ---
 
