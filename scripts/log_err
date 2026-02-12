@@ -11,4 +11,3 @@ fi
 
 mkdir -p /tmp/openclaw
 printf "[%s] %s\n" "$ts" "$msg" >> /tmp/openclaw/automation-errors.log
-AiVIS session compaction guard: Context compaction failed. Main session still at 131000/131000 tokens (100%).
